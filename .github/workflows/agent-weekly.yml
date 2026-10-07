@@ -1,0 +1,26 @@
+name: Agent 周报
+
+on:
+  schedule:
+    # 每周一 8:00 UTC = 16:00 北京时间
+    - cron: "0 8 * * 1"
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖
+        run: pip install requests
+
+      - name: 生成周报并发送
+        env:
+          QQ_SMTP_AUTH_CODE: ${{ secrets.QQ_SMTP_AUTH_CODE }}
+        run: python scripts/agent_digest.py
