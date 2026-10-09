@@ -91,6 +91,23 @@ class ChromaVectorStore(BaseVectorStore):
                 )
         return search_results
     
+    def delete(self, ids=None, where=None) -> int:
+        '''
+        按 ID 或元数据条件删除向量
+        Returns:
+            int: 删除前匹配到的条数（0 表示没找到）
+        '''
+        got = self.collection.get(ids=ids, where=where, include=["metadatas"])
+        count = len(got.get('ids') or [])
+        if count:
+            self.collection.delete(ids=ids, where=where)
+        return count
+
+    def list_metadatas(self, where=None) -> List[Dict]:
+        '''列出符合条件的元数据（用于文档清单 / 判断文件是否已入库）'''
+        got = self.collection.get(where=where, include=['metadatas'])
+        return got.get('metadatas') or []
+
     def clear(self) -> bool:
         '''
         清空数据

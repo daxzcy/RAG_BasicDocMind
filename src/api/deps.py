@@ -31,7 +31,7 @@ def get_search_service(collection_name:str):
     # 创建检索服务实例
     search_service = SearchService(document_store=store)
     # 创建缓存检索服务实例
-    if os.getenv('ENABLE_SEARCH_CACHE').lower() in ('1','true','yes'):
+    if os.getenv('ENABLE_SEARCH_CACHE','false').lower() in ('1','true','yes'):
         search_service = CachedSearchService(search_service=search_service)
 
     return search_service

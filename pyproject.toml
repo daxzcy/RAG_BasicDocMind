@@ -3,14 +3,16 @@ name = "rag-project"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "cachetools>=7.0.5",
     "chromadb>=1.5.5",
     "docling>=2.76.0",
     "fastapi>=0.135.1",
     "markdownify>=1.2.2",
-    "numpy>=2.4.2",
+    "numpy>=2.2.0",
+    # onnxruntime 1.24 起不再提供 cp310 wheel（chromadb 的传递依赖），3.10 分支固定用 1.23.2
+    "onnxruntime==1.23.2; python_full_version < '3.11'",
     "openai>=2.29.0",
     "pandas>=2.3.3",
     "python-docx>=1.2.0",
@@ -18,8 +20,8 @@ dependencies = [
     "python-multipart>=0.0.22",
     "sentence-transformers>=5.3.0",
     "tenacity>=9.1.4",
-    "torch>=2.10.0",
-    "torchvision>=0.25.0",
+    "torch>=2.10.0,<2.11",
+    "torchvision>=0.25.0,<0.26",
     "uvicorn>=0.42.0",
 ]
 
@@ -33,16 +35,16 @@ torchvision = [
 ]
 
 [[tool.uv.index]]
-# 定义 PyTorch CUDA 12.6 的专用索引
+# 定义 PyTorch CUDA 12.6 的专用索引（上海交大镜像，与 download.pytorch.org/whl/cu126 同构）
 name = "pytorch-cu126"
-url = "https://download.pytorch.org/whl/cu126"
+url = "https://mirror.sjtu.edu.cn/pytorch-wheels/cu126"
 # explicit = true 确保只有我们指定的包从这里获取
 explicit = true
 
 [[tool.uv.index]]
-# 保留默认的 PyPI 索引，用于安装其他非 PyTorch 的包
-name = "pypi"
-url = "https://pypi.org/simple"
+# 默认索引改为清华 TUNA 镜像（HTTPS）
+name = "tuna"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 default = true
 
 [dependency-groups]

@@ -71,11 +71,22 @@ async def upload_document(
         # 解析
         rs = parser.parse_from_bytes(file_bytes,file.filename)
         # 保存到向量数据库
-        if collection_name and not is_duplicate:  # 存储到向量数据库
+        if collection_name:  # 存储到向量数据库
             # 创建向量模型
             embedding_model = get_embedding_model()
             # 创建向量存储实例
             store = DocumentStore(embedding_model=embedding_model,collection_name=collection_name)
+            # 判重按「这个集合里有没有这个文件」而不是「磁盘上有没有同样的字节」，
+            # 否则把同一份文件存进第二个集合时会被静默跳过。
+            if store.has_document(rs.filename, namespace=collection_name):
+                return {
+                    'success': True,
+                    'filename':rs.filename,
+                    'stored':False,
+                    'doc_count':0,
+                    'duplicate':True,
+                    'message':'该集合里已有同名文档，跳过写入（要更新请先 DELETE 再上传）'
+                }
             # 保存数据
             doc_ids = store.add_parse_result(rs,namespace=collection_name)
             return {
@@ -83,16 +94,8 @@ async def upload_document(
                 'filename':rs.filename,
                 'stored':True,
                 'doc_count':len(doc_ids),
-                'duplicate':False
-            }
-        elif is_duplicate:  # 忽略重复文件
-            return {
-                'success': True,
-                'filename':rs.filename,
-                'stored':False,
-                'doc_count':0,
-                'duplicate':True,
-                'message':'文件已存在,跳过重复处理'
+                'duplicate':False,
+                'file_duplicate_on_disk': is_duplicate
             }
         else:
             return {
@@ -144,6 +147,32 @@ async def parse_document_by_path(body:ParsePathRequest):
     except Exception as e:
         raise HTTPException(status_code=500,detail=f'文件解析失败:{str(e)}')
     
+@router.get('/list')
+async def list_documents(collection_name:str):
+    ''' 列出某个集合里已经入库的文件及其块数 '''
+    store = DocumentStore(embedding_model=get_embedding_model(),collection_name=collection_name)
+    return {
+        "collection": collection_name,
+        "documents": store.list_documents(namespace=collection_name)
+    }
+
+@router.delete('/{filename}')
+async def delete_document(filename:str,collection_name:str):
+    '''
+    删除某个文件在该集合里的全部向量
+    用于源文件被删掉、或需要重新入库时，避免过时内容继续被检索
+    '''
+    store = DocumentStore(embedding_model=get_embedding_model(),collection_name=collection_name)
+    deleted = store.delete_document(filename,namespace=collection_name)
+    if deleted == 0:
+        raise HTTPException(status_code=404,detail=f"{collection_name} 中没有找到 {filename}")
+    return {
+        "success": True,
+        "collection": collection_name,
+        "filename": filename,
+        "deleted_chunks": deleted
+    }
+
 @router.get('/supported-formats')
 async def supported_formats():
     ''' 获取支持的格式列表 '''

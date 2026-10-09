@@ -53,7 +53,8 @@ def generate_answer(
         question:str,
         results:List[Dict[str,Any]],
         temperature:float=0.7,
-        max_token:int=2000
+        max_token:int=2000,
+        max_context_chars:int=1500
         ) -> Dict[str,Any]:
     '''
         生成答案
@@ -62,7 +63,8 @@ def generate_answer(
             question: 问题
             results: 检索结果
             temperature: 模型温度
-            max_token: 最大token数
+            max_token: 模型单次生成的最大 token 数（只影响输出长度）
+            max_context_chars: 拼进提示词的上下文总字符上限（只影响检索结果的使用量）
         Returns:
             Dict[str,Any]: 模型输出
     '''
@@ -76,7 +78,7 @@ def generate_answer(
         }
 
     #　格式化上下文
-    context = format_context(results,max_token)
+    context = format_context(results,max_context_chars)
     # 构建提示词
     prompt = build_prompt(question,context)
     # 调用LLM
@@ -96,24 +98,25 @@ async def generate_answer_stream(
         question:str,
         results:List[Dict[str,Any]],
         temperature:float=0.7,
-        max_token:int=2000
+        max_token:int=2000,
+        max_context_chars:int=1500
         ):
     '''
-        生成答案
+        生成答案（流式）
         Args:
             llm: LLM 对象
             question: 问题
             results: 检索结果
             temperature: 模型温度
-            max_token: 最大token数
-        
+            max_token: 模型单次生成的最大 token 数（只影响输出长度）
+            max_context_chars: 拼进提示词的上下文总字符上限（只影响检索结果的使用量）
     '''
     if not results:
         yield '我不知道'
         return
 
     #　格式化上下文
-    context = format_context(results,max_token)
+    context = format_context(results,max_context_chars)
     # 构建提示词
     prompt = build_prompt(question,context)
     # 调用LLM

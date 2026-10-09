@@ -95,6 +95,33 @@ class DocumentStore:
 
         return self.vector_store.add_documents(documents,embeddings)
     
+    def delete_document(self, filename: str, namespace: Optional[str] = None) -> int:
+        '''
+        删除某个文件在该集合里的全部向量
+        源文件被删除、或需要重新索引时调用，避免「过时知识」继续被检索出来
+        '''
+        return self.vector_store.delete(where=self._file_where(filename, namespace))
+
+    def has_document(self, filename: str, namespace: Optional[str] = None) -> bool:
+        '''该集合里是否已有这个文件的向量（判断要不要写入，比按磁盘文件判重更准）'''
+        return bool(self.vector_store.list_metadatas(where=self._file_where(filename, namespace)))
+
+    def list_documents(self, namespace: Optional[str] = None) -> List[Dict[str, Any]]:
+        '''列出集合里的文件及各自的块数'''
+        where = {"namespace": namespace} if namespace else None
+        counter: Dict[str, int] = {}
+        for meta in self.vector_store.list_metadatas(where=where):
+            name = (meta or {}).get("filename", "?")
+            counter[name] = counter.get(name, 0) + 1
+        return [{"filename": k, "chunks": v} for k, v in sorted(counter.items())]
+
+    @staticmethod
+    def _file_where(filename: str, namespace: Optional[str] = None) -> Dict[str, Any]:
+        '''构造"按文件名（可选命名空间）"的过滤条件'''
+        if namespace:
+            return {"$and": [{"filename": filename}, {"namespace": namespace}]}
+        return {"filename": filename}
+
     def get_stats(self) -> dict[str, int]:
         '''
         获取存储统计信息

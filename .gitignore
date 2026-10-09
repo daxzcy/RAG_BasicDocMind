@@ -59,3 +59,19 @@ temp/
 *.tmp
 .playwright-mcp/
 .claude/settings.local.json
+
+# 本机 TLS 代理根证书（机器相关）
+certs/
+
+# 测试产生的向量库（集成测试用）
+data/chroma_test/
+
+# ==================== 教学工作区（不上传）====================
+MISSION.md
+NOTES.md
+RESOURCES.md
+lessons/
+reference/
+learning-records/
+assets/
+

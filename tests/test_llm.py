@@ -152,6 +152,34 @@ def test_qwen_llm():
     print("[OK] 通义千问 LLM 测试通过")
 
 
+def test_deepseek_llm():
+    """测试 DeepSeek LLM"""
+    print("\n--- 测试 DeepSeek LLM ---")
+
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+    if not api_key:
+        print("  跳过：未配置 DEEPSEEK_API_KEY")
+        return
+
+    llm = LLM(
+        model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+        api_key=api_key,
+        base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
+    )
+
+    result = llm.generate(
+        messages=[{"role": "user", "content": "你好"}],
+        temperature=0.7,
+        max_token=50
+    )
+
+    print(f"  模型: {result['model']}")
+    print(f"  回复: {result['content'][:50]}...")
+
+    assert result["content"]
+    print("[OK] DeepSeek LLM 测试通过")
+
+
 def run_all_tests():
     """运行所有测试"""
     print("=" * 50)
@@ -170,6 +198,7 @@ def run_all_tests():
     test_llm_basic()
     test_generate_answer()
     test_qwen_llm()
+    test_deepseek_llm()
 
     print("\n" + "=" * 50)
     print("[PASS] 所有测试通过")

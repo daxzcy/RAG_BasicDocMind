@@ -15,7 +15,7 @@ jobs:
       - name: 安装 Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.10"
 
       - name: 安装依赖
         run: pip install requests
@@ -23,4 +23,8 @@ jobs:
       - name: 生成周报并发送
         env:
           QQ_SMTP_AUTH_CODE: ${{ secrets.QQ_SMTP_AUTH_CODE }}
+          # 收发件邮箱从仓库 Secrets/Variables 读取，不写进代码
+          QQ_SMTP_SENDER: ${{ secrets.QQ_SMTP_SENDER }}
+          QQ_SMTP_RECEIVER: ${{ secrets.QQ_SMTP_RECEIVER }}
+          REPO_URL: https://github.com/${{ github.repository }}
         run: python scripts/agent_digest.py

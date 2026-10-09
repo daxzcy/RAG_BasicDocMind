@@ -5,6 +5,11 @@ import time
 import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# 必须在导入 src.* / sentence_transformers 之前加载 .env：
+# 否则 HF_HUB_OFFLINE / HF_ENDPOINT 不生效，加载模型时会去连被墙的 huggingface.co。
+from dotenv import load_dotenv  # noqa: E402
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+
 from src.embeddings.local_embedding import LocalEmbedding
 
 

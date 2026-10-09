@@ -34,7 +34,8 @@ async def chat(request:ChatRequest):
         question=request.query,
         results=search_response.results,
         temperature=settings.LLM_TEMPERATURE,
-        max_token=settings.LLM_MAX_TOKEN
+        max_token=settings.LLM_MAX_TOKEN,
+        max_context_chars=settings.LLM_MAX_CONTEXT_CHARS
     )
 
     # 构建来源
@@ -83,7 +84,8 @@ async def chat_stream(request:ChatRequest):
             question=request.query,
             results=search_response.results,
             temperature=settings.LLM_TEMPERATURE,
-            max_token=settings.LLM_MAX_TOKEN
+            max_token=settings.LLM_MAX_TOKEN,
+            max_context_chars=settings.LLM_MAX_CONTEXT_CHARS
         ),
         media_type="text/plain; charset=utf-8",
         headers={"Cache-Control": "no-cache","X-Accel-Buffering": "no"}  # 禁用缓存
